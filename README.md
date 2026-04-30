@@ -6,51 +6,41 @@ No coding required. Copy one command, paste it into your terminal, and your AI a
 
 ---
 
-## Install (pick your option)
+## Install
 
-### Option 1 — One command (easiest)
+### Option 1 — `npx skills add` (recommended)
 
 Open your terminal **in your project folder** and run:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/antongulin/agenticflow-ai-skills/main/skills.sh | bash
+npx skills add antongulin/agenticflow-ai-skills --all
 ```
 
-This installs all 5 skills. Works with Claude Code, Cursor, OpenCode, Codex, and Gemini CLI.
+This installs all 5 skills automatically. Works with 50+ AI coding tools including Claude Code, Cursor, OpenCode, Codex, and Gemini CLI.
 
-### Option 2 — Send a link to your AI agent
-
-Copy this URL and send it to your AI coding tool:
-
-```
-https://raw.githubusercontent.com/antongulin/agenticflow-ai-skills/main/skills.sh
-```
-
-Your AI agent will read the installer and set up the skills automatically.
-
-### Option 3 — Install one specific skill
+#### Install a specific skill
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/antongulin/agenticflow-ai-skills/main/skills.sh | bash -s -- agenticflow-agent
+npx skills add antongulin/agenticflow-ai-skills --skill agenticflow-agent
 ```
 
 Replace `agenticflow-agent` with any skill name from the table below.
 
-### Option 4 — Manual (one file copy)
+#### Install globally (available across all projects)
 
-Pick your AI tool from the table, create the folder, and download the skill file into it:
+```bash
+npx skills add antongulin/agenticflow-ai-skills --global
+```
 
-| Your tool | Create this folder | Download this file into it |
-|-----------|-------------------|---------------------------|
-| Claude Code | `.claude/skills/agenticflow-agent/` | [SKILL.md](skills/agenticflow-agent/SKILL.md) |
-| Cursor | `.cursor/skills/agenticflow-agent/` | [SKILL.md](skills/agenticflow-agent/SKILL.md) |
-| OpenCode | `.opencode/skills/agenticflow-agent/` | [SKILL.md](skills/agenticflow-agent/SKILL.md) |
-| Codex | `.codex/skills/agenticflow-agent/` | [SKILL.md](skills/agenticflow-agent/SKILL.md) |
-| Gemini CLI | `.gemini/skills/agenticflow-agent/` | [SKILL.md](skills/agenticflow-agent/SKILL.md) |
+#### See what's available before installing
 
-Repeat for any other skills you want (swap `agenticflow-agent` with `agenticflow-workforce`, `agenticflow-mcp`, `agenticflow-llm-models`, or `agenticflow-built-in-credits`).
+```bash
+npx skills add antongulin/agenticflow-ai-skills --list
+```
 
-[Full install guide →](INSTALL.md)
+### Option 2 — Manual install
+
+Prefer to set up skills by hand? See the [manual install guide →](INSTALL.md)
 
 ---
 
@@ -94,13 +84,15 @@ No API keys needed to get started.
 
 ## Supported AI tools
 
+The skills.sh CLI automatically detects your installed agents and supports 50+ coding tools. Here's a quick reference for the most common ones:
+
 | Tool | Skill location |
 |------|---------------|
 | Claude Code | `.claude/skills/` or `~/.claude/skills/` |
-| Cursor | `.cursor/skills/` |
-| OpenCode | `.opencode/skills/` or `~/.config/opencode/skills/` |
-| Codex | `.codex/skills/` |
-| Gemini CLI | `.gemini/skills/` |
+| Cursor | `.agents/skills/` |
+| OpenCode | `.agents/skills/` or `~/.config/opencode/skills/` |
+| Codex | `.agents/skills/` |
+| Gemini CLI | `.agents/skills/` |
 
 ---
 
