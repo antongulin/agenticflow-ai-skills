@@ -1,108 +1,28 @@
-# AgenticFlow AI Skills — Installer
+# Manual Installation
 
-Universal installer for AgenticFlow AI skills. Works with all 5 supported AI coding tools.
+> **Preferred method:** Use `npx skills add antongulin/agenticflow-ai-skills` instead. This guide is the fallback for manual setup.
 
-## One-command install (recommended)
+## Step 1: Pick your AI tool
 
-Copy and paste into your terminal **from your project directory**:
+Create the skills folder for your tool:
 
-```bash
-curl -fsSL https://raw.githubusercontent.com/antongulin/agenticflow-ai-skills/main/skills.sh | bash
-```
+| Your tool | Create this folder | Download this file into it |
+|-----------|-------------------|---------------------------|
+| Claude Code | `.claude/skills/agenticflow-agent/` | [SKILL.md](skills/agenticflow-agent/SKILL.md) |
+| Cursor | `.agents/skills/agenticflow-agent/` | [SKILL.md](skills/agenticflow-agent/SKILL.md) |
+| OpenCode | `.agents/skills/agenticflow-agent/` | [SKILL.md](skills/agenticflow-agent/SKILL.md) |
+| Codex | `.agents/skills/agenticflow-agent/` | [SKILL.md](skills/agenticflow-agent/SKILL.md) |
+| Gemini CLI | `.agents/skills/agenticflow-agent/` | [SKILL.md](skills/agenticflow-agent/SKILL.md) |
 
-This installs **all 5 skills** into the correct directory for your AI tool. The script auto-detects:
+## Step 2: Repeat for each skill
 
-| AI Tool | Installs to |
-|---------|-------------|
-| Claude Code | `.claude/skills/` |
-| Cursor | `.cursor/skills/` |
-| OpenCode | `.opencode/skills/` |
-| Codex | `.codex/skills/` |
-| Gemini CLI | `.gemini/skills/` |
+Replace `agenticflow-agent` with:
+- `agenticflow-workforce`
+- `agenticflow-mcp`
+- `agenticflow-llm-models`
+- `agenticflow-built-in-credits`
 
-If auto-detection fails, you can tell it where to install:
-
-```bash
-SKILLS_DIR=./skills curl -fsSL ... | bash
-# or
-SKILLS_DIR=~/.claude/skills curl -fsSL ... | bash
-```
-
-## Install a single skill
-
-```bash
-curl -fsSL https://raw.githubusercontent.com/antongulin/agenticflow-ai-skills/main/skills.sh | bash -s -- agenticflow-agent
-```
-
-Available skill names:
-- `agenticflow-agent` — single agent lifecycle
-- `agenticflow-workforce` — multi-agent teams
-- `agenticflow-mcp` — external tool integration
-- `agenticflow-llm-models` — model selection guide
-- `agenticflow-built-in-credits` — credits-first approach
-
-## Manual install
-
-Choose your tool, create the folder, download the file:
-
-**Claude Code**
-```bash
-mkdir -p .claude/skills/agenticflow-agent
-curl -o .claude/skills/agenticflow-agent/SKILL.md \
-  https://raw.githubusercontent.com/antongulin/agenticflow-ai-skills/main/skills/agenticflow-agent/SKILL.md
-```
-
-**Cursor**
-```bash
-mkdir -p .cursor/skills/agenticflow-agent
-curl -o .cursor/skills/agenticflow-agent/SKILL.md \
-  https://raw.githubusercontent.com/antongulin/agenticflow-ai-skills/main/skills/agenticflow-agent/SKILL.md
-```
-
-**OpenCode**
-```bash
-mkdir -p .opencode/skills/agenticflow-agent
-curl -o .opencode/skills/agenticflow-agent/SKILL.md \
-  https://raw.githubusercontent.com/antongulin/agenticflow-ai-skills/main/skills/agenticflow-agent/SKILL.md
-```
-
-**Codex**
-```bash
-mkdir -p .codex/skills/agenticflow-agent
-curl -o .codex/skills/agenticflow-agent/SKILL.md \
-  https://raw.githubusercontent.com/antongulin/agenticflow-ai-skills/main/skills/agenticflow-agent/SKILL.md
-```
-
-**Gemini CLI**
-```bash
-mkdir -p .gemini/skills/agenticflow-agent
-curl -o .gemini/skills/agenticflow-agent/SKILL.md \
-  https://raw.githubusercontent.com/antongulin/agenticflow-ai-skills/main/skills/agenticflow-agent/SKILL.md
-```
-
-Swap `agenticflow-agent` with any other skill name: `agenticflow-workforce`, `agenticflow-mcp`, `agenticflow-llm-models`, `agenticflow-built-in-credits`.
-
-## Send a link to your AI agent
-
-If your AI tool supports link-sharing, send this URL and ask your agent to install:
-
-```
-https://raw.githubusercontent.com/antongulin/agenticflow-ai-skills/main/skills.sh
-```
-
-The agent will run the install script and configure the skills.
-
-## From source
-
-```bash
-git clone https://github.com/antongulin/agenticflow-ai-skills.git
-cd agenticflow-ai-skills
-bash skills.sh
-```
-
-## Updating
-
-Run the install script again — it overwrites existing skills with the latest versions.
+That's it. Your AI assistant will automatically discover and use these skills.
 
 ## Requirements
 

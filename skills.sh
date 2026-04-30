@@ -1,63 +1,54 @@
 #!/usr/bin/env bash
-# skills.sh — Install AgenticFlow AI skills
-# Supports: Claude Code, Cursor, OpenCode, Codex, Gemini CLI
-#
-# Install all:
-#   curl -fsSL https://raw.githubusercontent.com/antongulin/agenticflow-ai-skills/main/skills.sh | bash
-#
-# Install one:
-#   curl -fsSL https://raw.githubusercontent.com/antongulin/agenticflow-ai-skills/main/skills.sh | bash -s -- agenticflow-agent
+# skills.sh — AgenticFlow AI Skills install helper
+# Deprecated: Use `npx skills add` instead (official, faster, works with 50+ agents)
 
 set -euo pipefail
 
 REPO="antongulin/agenticflow-ai-skills"
+
+echo "╔══════════════════════════════════════════════════════════════╗"
+echo "║  AgenticFlow AI Skills — skills.sh (deprecated)              ║"
+echo "╚══════════════════════════════════════════════════════════════╝"
+echo ""
+echo "⚠️  This script is deprecated. Use the official skills CLI:"
+echo ""
+echo "   Install all skills:"
+echo "     npx skills add ${REPO} --all"
+echo ""
+echo "   Install one skill:"
+echo "     npx skills add ${REPO} --skill agenticflow-agent"
+echo ""
+echo "   Install globally:"
+echo "     npx skills add ${REPO} --global"
+echo ""
+echo "   See what's available:"
+echo "     npx skills add ${REPO} --list"
+echo ""
+echo "💡 Need help? https://github.com/${REPO}/blob/main/INSTALL.md"
+echo ""
+
+# If the user really wants to run the old behavior, allow it with FORCE_LEGACY=1
+if [ "${FORCE_LEGACY:-0}" = "1" ]; then
+  echo "⏳ FORCE_LEGACY=1 — running legacy install..."
+  echo ""
+else
+  exit 0
+fi
+
+# ---- Legacy fallback (only runs with FORCE_LEGACY=1) ----
+
 BRANCH="main"
 RAW_URL="https://raw.githubusercontent.com/${REPO}/${BRANCH}/skills"
 
-# Auto-detect which AI tool we're in
 detect_target_dir() {
-  # Check project-level first (cwd), then global
-  for dir in \
-    ".claude/skills" \
-    ".cursor/skills" \
-    ".opencode/skills" \
-    ".codex/skills" \
-    ".gemini/skills"; do
-    if [ -d "$dir" ]; then
-      echo "$dir"
-      return
-    fi
+  for dir in ".agents/skills" ".claude/skills" ".cursor/skills" ".codex/skills"; do
+    [ -d "$dir" ] && { echo "$dir"; return; }
   done
-
-  # Check global install locations
-  for dir in \
-    "$HOME/.claude/skills" \
-    "$HOME/.config/opencode/skills" \
-    "$HOME/.cursor/skills" \
-    "$HOME/.codex/skills" \
-    "$HOME/.gemini/skills"; do
-    if [ -d "$dir" ]; then
-      echo "$dir"
-      return
-    fi
+  for dir in "$HOME/.agents/skills" "$HOME/.claude/skills" "$HOME/.config/opencode/skills"; do
+    [ -d "$dir" ] && { echo "$dir"; return; }
   done
-
-  # Guess based on common config files
-  for marker in ".claude" ".cursor" ".opencode" ".codex" ".gemini"; do
-    if [ -d "$marker" ]; then
-      echo "${marker}/skills"
-      return
-    fi
-  done
-
-  # Nothing detected — create a .skills/ fallback
   echo ""
 }
-
-echo "╔══════════════════════════════════════════╗"
-echo "║   AgenticFlow AI Skills Installer        ║"
-echo "╚══════════════════════════════════════════╝"
-echo ""
 
 ALL_KNOWN_SKILLS=(
   "agenticflow-agent"
@@ -71,17 +62,7 @@ TARGET_DIR="${SKILLS_DIR:-$(detect_target_dir)}"
 
 if [ -z "$TARGET_DIR" ]; then
   echo "⚠️  Could not detect your AI tool's skills directory."
-  echo ""
-  echo "   Tell me where to install by setting SKILLS_DIR:"
-  echo ""
-  echo "   Claude Code:   SKILLS_DIR=.claude/skills"
-  echo "   Cursor:        SKILLS_DIR=.cursor/skills"
-  echo "   OpenCode:      SKILLS_DIR=.opencode/skills"
-  echo "   Codex:         SKILLS_DIR=.codex/skills"
-  echo "   Gemini CLI:    SKILLS_DIR=.gemini/skills"
-  echo ""
-  echo "   Example:"
-  echo "   SKILLS_DIR=.claude/skills curl -fsSL ... | bash"
+  echo "   Set SKILLS_DIR=.agents/skills or SKILLS_DIR=.claude/skills"
   exit 1
 fi
 
@@ -104,38 +85,16 @@ install_skill() {
   fi
 }
 
-# Which skills to install
 if [ $# -gt 0 ]; then
   SKILLS=("$@")
 else
   SKILLS=("${ALL_KNOWN_SKILLS[@]}")
-  echo "🚀 Installing all ${#SKILLS[@]} skills..."
 fi
-echo ""
 
 FAILED=0
 for skill in "${SKILLS[@]}"; do
   install_skill "$skill" || FAILED=$((FAILED+1))
 done
 
-echo ""
 echo "━ Installed: $(( ${#SKILLS[@]} - FAILED ))/${#SKILLS[@]} skills to $TARGET_DIR"
-if [ $FAILED -gt 0 ]; then
-  echo "━ Failed: $FAILED"
-fi
-echo ""
-
-if [ $FAILED -eq 0 ]; then
-  echo "✅ Ready — ask your AI agent to help, e.g.:"
-  echo "   'create an agent for customer support'"
-  echo "   'deploy a dev shop workforce'"
-  echo "   'attach google sheets to my agent'"
-  echo "   'what model should i use'"
-  echo "   'generate an image using my credits'"
-  echo ""
-  echo "💡 Prerequisite: npm install -g @pixelml/agenticflow-cli"
-  echo "📖 Docs: https://github.com/${REPO}"
-else
-  echo "⚠️  $FAILED skill(s) failed to install. Check your connection and try again."
-  exit 1
-fi
+[ "$FAILED" -gt 0 ] && exit 1
