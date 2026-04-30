@@ -1,0 +1,141 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'skills/**/SKILL.md'
+      - 'skills.sh'
+      - 'README.md'
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: 'Bump type (major/minor/patch) — leave empty for auto-detect'
+        required: false
+        type: choice
+        options: ['', major, minor, patch]
+        default: ''
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Get latest tag
+        id: latest_tag
+        run: |
+          TAG=$(git tag --sort=-v:refname | head -1 || echo "")
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "Latest tag: ${TAG:-none}"
+
+      - name: Check if commits exist since last tag
+        id: changed
+        run: |
+          TAG="${{ steps.latest_tag.outputs.tag }}"
+          if [ -z "$TAG" ]; then
+            # No tags yet — first release
+            echo "changed=true" >> $GITHUB_OUTPUT
+            echo "No tags found. Creating first release."
+            exit 0
+          fi
+          COMMITS=$(git log ${TAG}..HEAD --oneline -- skills/ skills.sh README.md)
+          if [ -z "$COMMITS" ]; then
+            echo "changed=false" >> $GITHUB_OUTPUT
+            echo "No skill changes since $TAG. Skipping."
+          else
+            echo "changed=true" >> $GITHUB_OUTPUT
+            echo "Changes found since $TAG:"
+            echo "$COMMITS"
+          fi
+
+      - name: Detect version bump
+        if: steps.changed.outputs.changed == 'true'
+        id: bump
+        run: |
+          # Use manual override if provided
+          if [ -n "${{ inputs.bump }}" ]; then
+            echo "bump=${{ inputs.bump }}" >> $GITHUB_OUTPUT
+            echo "Manual bump: ${{ inputs.bump }}"
+            exit 0
+          fi
+
+          TAG="${{ steps.latest_tag.outputs.tag }}"
+          if [ -z "$TAG" ]; then
+            echo "bump=minor" >> $GITHUB_OUTPUT
+            echo "First release — minor bump"
+            exit 0
+          fi
+
+          COMMITS=$(git log ${TAG}..HEAD --oneline -- skills/ skills.sh README.md)
+          if echo "$COMMITS" | grep -qiE 'BREAKING|major|remove|delete skill'; then
+            BUMP="major"
+          elif echo "$COMMITS" | grep -qiE 'add|new|feat|blueprint'; then
+            BUMP="minor"
+          else
+            BUMP="patch"
+          fi
+          echo "bump=$BUMP" >> $GITHUB_OUTPUT
+          echo "Auto-detected bump: $BUMP"
+
+      - name: Calculate new version
+        if: steps.changed.outputs.changed == 'true'
+        id: version
+        run: |
+          CURRENT="${{ steps.latest_tag.outputs.tag }}"
+          if [ -z "$CURRENT" ]; then
+            CURRENT="v0.0.0"
+          fi
+          CURRENT="${CURRENT#v}"
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT"
+
+          case "${{ steps.bump.outputs.bump }}" in
+            major)  MAJOR=$((MAJOR+1)); MINOR=0; PATCH=0 ;;
+            minor)  MINOR=$((MINOR+1)); PATCH=0 ;;
+            patch)  PATCH=$((PATCH+1)) ;;
+          esac
+
+          NEW_VERSION="v${MAJOR}.${MINOR}.${PATCH}"
+          echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "New version: $NEW_VERSION"
+
+      - name: Extract skill versions
+        if: steps.changed.outputs.changed == 'true'
+        id: skill_versions
+        run: |
+          VERSIONS=""
+          for skill in skills/*/SKILL.md; do
+            name=$(basename $(dirname $skill))
+            ver=$(grep -o '"version": *"[^"]*"' "$skill" | head -1 | cut -d'"' -f4 || echo "?")
+            VERSIONS="${VERSIONS}- ${name}: ${ver}\n"
+          done
+          echo "versions<<EOF" >> $GITHUB_OUTPUT
+          echo -e "$VERSIONS" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Create tag
+        if: steps.changed.outputs.changed == 'true'
+        run: |
+          git tag "${{ steps.version.outputs.version }}" -m "${{ steps.version.outputs.version }}"
+          git push origin "${{ steps.version.outputs.version }}"
+
+      - name: Create release
+        if: steps.changed.outputs.changed == 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.version }}
+          name: ${{ steps.version.outputs.version }}
+          body: |
+            ## What's Changed
+
+            ${{ steps.bump.outputs.bump }} bump — ${{ steps.version.outputs.version }}
+
+            ### Skill Versions
+            ${{ steps.skill_versions.outputs.versions }}
+          generate_release_notes: true

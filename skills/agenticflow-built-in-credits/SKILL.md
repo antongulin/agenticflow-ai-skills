@@ -4,7 +4,7 @@ description: "Use AgenticFlow's built-in features and account credits first — 
 compatibility: Claude Code, Claude Desktop, Codex, Cursor, Gemini CLI
 metadata:
   author: Anton Gulin (https://github.com/antongulin)
-  version: "1.0.0"
+  version: "2.0.0"
   license: MIT
 ---
 
@@ -35,6 +35,16 @@ From the response, extract:
 
 If `data_fresh: false` in the response, the backend is degraded — **do not mutate**. Fix auth/network before proceeding.
 
+## Discovery & health
+
+```bash
+af changelog --json           # What's new in the CLI — check for credit changes
+af context --json              # AI agent orientation, env vars, invocation guidance
+af bootstrap --strict --json   # Health check — exits non-zero if degraded
+```
+
+`af bootstrap` returns an `invocation` block telling you the correct CLI binary to use. `af bootstrap --strict` exits non-zero when the backend is unhealthy, so CI/automation can abort before mutating against a degraded workspace.
+
 ---
 
 ## Primary Philosophy: Credits-First
@@ -42,12 +52,14 @@ If `data_fresh: false` in the response, the backend is degraded — **do not mut
 ### DEFAULT: Use Your Existing Credits
 
 **When using this skill, the DEFAULT approach is:**
-1. **Start with a blueprint** — `af agent init --blueprint <id>` (never create from scratch if a blueprint exists)
+1. **Start with a blueprint** — `af agent init --blueprint <id>` or `af workflow init --blueprint <id>` (never create from scratch if a blueprint exists)
 2. Use built-in nodes that consume your **existing account credits**
 3. Leverage `agenticflow_generate_image` (PixelML backend)
 4. Use `llm`, `web_search`, `web_retrieval` (built-in)
 5. Deploy blueprints: `content-creator`, `research-assistant`, `research-pair`
 
+> **Default model:** Since CLI v1.8.1, blueprints default to `agenticflow/gpt-4o-mini` (not `gemini-2.0-flash`). This is because GPT-4o-mini follows system prompts and reliably calls tools, while Gemini 2.0 Flash refuses `web_search` on "latest X" prompts citing cutoff. Override with `--model <id>` if you have a specific reason.
+>
 > Blueprint first, custom agent second. If the user needs image generation, use `af agent init --blueprint content-creator`. If they need research, use `af agent init --blueprint research-assistant`. Only create a custom agent with `af agent create --body '...'` if no blueprint fits the use case.
 
 ### EXTENSION: BYOK Only When Needed
@@ -109,11 +121,18 @@ If `data_fresh: false` in the response, the backend is degraded — **do not mut
 
 ```bash
 # DEFAULT: These use YOUR credits only, no setup needed
-af workflow init --blueprint llm-hello --json        # ~1-5 credits
-af workflow init --blueprint llm-chain --json        # ~2-10 credits
-af workflow init --blueprint summarize-url --json    # ~3-15 credits
-af workflow init --blueprint api-summary --json      # ~3-15 credits
+af workflow init --blueprint llm-hello --json            # ~1-5 credits
+af workflow init --blueprint llm-chain --json            # ~2-10 credits
+af workflow init --blueprint summarize-url --json        # ~3-15 credits
+af workflow init --blueprint api-summary --json          # ~3-15 credits
+af workflow init --blueprint email-to-structured --json   # ~3-15 credits
+af workflow init --blueprint rss-digest-email --json     # ~3-15 credits
+af workflow init --blueprint competitor-url-snapshot --json  # ~3-15 credits
+af workflow init --blueprint job-app-package --json     # ~3-15 credits
+af workflow init --blueprint n8n-converter --json       # ~3-15 credits
 ```
+
+> Workflow blueprints require an **LLM-provider connection** in the workspace (straico, openai, anthropic, etc). `af workflow init` auto-discovers it. If missing, the error tells you exactly which connection to create in the UI.
 
 ### Rung 3: Agent Blueprints (Credits-First)
 
@@ -138,12 +157,25 @@ af agent init --blueprint content-creator --json
 
 ```bash
 # DEFAULT: Multi-agent using YOUR credits only
-af workforce init --blueprint research-pair --json   # web_search + web_retrieval
-af workforce init --blueprint content-duo --json     # verify: uses YOUR credits
+# Plugin-based blueprints (v1.9.0+) — plugins pre-attached, no post-deploy setup
+af workforce init --blueprint research-pair --json      # web_search + web_retrieval
+af workforce init --blueprint content-duo --json      # verify: uses YOUR credits
 af workforce init --blueprint api-pipeline --json     # api_call
-af workforce init --blueprint fact-check-loop --json # web_retrieval
-af workforce init --blueprint parallel-research --json # web_search
+af workforce init --blueprint fact-check-loop --json  # web_retrieval
+af workforce init --blueprint parallel-research --json  # parallel workers → synthesizer
+
+# Vertical team blueprints (v1.7.0+) — need MCP clients attached post-deploy
+af workforce init --blueprint dev-shop --json
+af workforce init --blueprint marketing-agency --json
+af workforce init --blueprint sales-team --json
+af workforce init --blueprint content-studio --json
+af workforce init --blueprint support-center --json
+af workforce init --blueprint amazon-seller --json
+af workforce init --blueprint tutor --json              # v1.7.0
+af workforce init --blueprint freelancer --json        # v1.7.0
 ```
+
+> **Composition ladder:** Blueprints span rungs 0-6. `kind` + `complexity` are the canonical fields (v1.10.0+). Legacy `tier` returns `null` unless explicitly set — ignore it.
 
 ---
 
@@ -385,7 +417,7 @@ This skill teaches the **credits-first mindset**. Share it to help others maximi
 
 ---
 
-**Version:** 1.0.0  
+**Version:** 2.0.0  
 **Philosophy:** Credits-First, Extend Only When Needed  
 **Author:** Anton Gulin (https://github.com/antongulin)  
 **License:** MIT

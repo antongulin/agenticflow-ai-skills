@@ -4,7 +4,7 @@ description: "Attach external tool providers (Google Docs, Google Sheets, Slack,
 compatibility: Claude Code, Claude Desktop, Codex, Cursor, Gemini CLI
 metadata:
   author: PixelML
-  version: "3.0.0"
+  version: "4.0.0"
   license: MIT
 triggers:
   - "mcp"
@@ -39,6 +39,16 @@ af bootstrap --json
 
 Extract `auth.workspace_id` + `_links.mcp` (the web UI URL for MCP management). **Surface `_links.mcp` to the user**: *"Your MCP connections live at `<_links.mcp>` — you can add or re-authenticate providers there if any inspections fail."* If `data_fresh: false`, the backend is degraded — don't mutate.
 
+## Discovery & health
+
+```bash
+af changelog --json           # What's new in the CLI since your last install
+af context --json              # AI agent orientation, env vars, invocation guidance
+af bootstrap --strict --json   # Health check — exits non-zero if degraded
+```
+
+`af bootstrap` returns an `invocation` block telling you the correct CLI binary to use. `af bootstrap --strict` exits non-zero when the backend is unhealthy, so CI/automation can abort before mutating against a degraded workspace.
+
 ## The one pattern that matters: inspect before attach
 
 Not all MCP clients are equal. There are two major families, and one of them breaks on writes.
@@ -46,6 +56,7 @@ Not all MCP clients are equal. There are two major families, and one of them bre
 ```bash
 af mcp-clients list --name-contains "google sheets" --fields id,name,is_authenticated --json
 af mcp-clients inspect --id <mcp_client_id> --json
+af mcp-clients get --id <mcp_client_id> --json   # Alias for inspect (v1.8.1+)
 ```
 
 `inspect` classifies the tool set and returns a `pattern` field:

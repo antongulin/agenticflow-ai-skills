@@ -9,7 +9,7 @@ This repository publishes 5 open-source SKILL.md files for the AgenticFlow AI pl
 - **`agenticflow-agent`** — Single agent lifecycle (create, patch, run, delete, MCP attach)
 - **`agenticflow-workforce`** — Multi-agent team / workforce deployment with blueprints
 - **`agenticflow-mcp`** — External tool integration (Sheets, Slack, Notion, GitHub, etc.)
-- **`agenticflow-llm-models`** — Model selection guide with top-5 recommendations
+- **`agenticflow-llm-models`** — Model selection guide with top-3 recommendations
 - **`agenticflow-built-in-credits`** — Credits-first philosophy and BYOK decision framework
 
 ## Install a skill
@@ -25,18 +25,18 @@ curl -fsSL https://raw.githubusercontent.com/antongulin/agenticflow-ai-skills/ma
 ## Skill format
 
 Each skill is a `SKILL.md` file with:
-- **YAML frontmatter** — `name`, `description`, `compatibility` (Claude Code, Cursor, Codex, Gemini CLI), `metadata` (author, version, license), and `triggers`
+- **YAML frontmatter** — `name`, `description`, `compatibility` (Claude Code, Cursor, Codex, OpenCode, Gemini CLI), `metadata` (author, version, license), and `triggers`
 - **Markdown body** — commands, examples, and decision trees for the `af` CLI
 
 ## Multi-LLM compatibility
 
-| Skill | Claude Code | Cursor | Codex | Gemini CLI |
-|-------|-------------|--------|-------|------------|
-| agenticflow-agent | ✅ | ✅ | ✅ | ✅ |
-| agenticflow-workforce | ✅ | ✅ | ✅ | ✅ |
-| agenticflow-mcp | ✅ | ✅ | ✅ | ✅ |
-| agenticflow-llm-models | ✅ | ✅ | ✅ | ✅ |
-| agenticflow-built-in-credits | ✅ | ✅ | ✅ | ✅ |
+| Skill | Claude Code | Cursor | Codex | **OpenCode** | Gemini CLI |
+|-------|-------------|--------|-------|-------------|------------|
+| agenticflow-agent | ✅ | ✅ | ✅ | ✅ | ✅ |
+| agenticflow-workforce | ✅ | ✅ | ✅ | ✅ | ✅ |
+| agenticflow-mcp | ✅ | ✅ | ✅ | ✅ | ✅ |
+| agenticflow-llm-models | ✅ | ✅ | ✅ | ✅ | ✅ |
+| agenticflow-built-in-credits | ✅ | ✅ | ✅ | ✅ | ✅ |
 
 ## Contributing
 

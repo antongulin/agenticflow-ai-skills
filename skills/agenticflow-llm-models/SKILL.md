@@ -1,10 +1,10 @@
 ---
 name: agenticflow-llm-models
-description: "Select and configure LLM models for AgenticFlow agents and workforces. Use this skill whenever the user asks which model to use, needs reasoning capabilities, wants fast/cheaper options, gets finish_reason=length errors, or asks about model speed/quality/intelligence trade-offs. Covers the top 5 recommended models, models to avoid, reasoning configuration, and max_tokens settings."
+description: "Select and configure LLM models for AgenticFlow agents and workforces. Use this skill whenever the user asks which model to use, needs reasoning capabilities, wants fast/cheaper options, gets finish_reason=length errors, or asks about model speed/quality/intelligence trade-offs. Covers the top recommended models, upstream canonical models, models to avoid, reasoning configuration, and max_tokens settings."
 compatibility: Claude Code, Claude Desktop, Codex, Cursor, Gemini CLI
 metadata:
   author: Anton Gulin (https://github.com/antongulin)
-  version: "1.0.0"
+  version: "2.0.0"
   license: MIT
 ---
 
@@ -22,57 +22,103 @@ Use `agenticflow-built-in-credits` skill instead for pricing, credits, or billin
 af bootstrap --json
 ```
 
-Extract `models[]` — this is the source of truth for available models. Never hardcode model lists; they change between CLI releases.
+Extract `models[]` — this is the **source of truth** for available models in your workspace. Never hardcode model lists; they change between CLI releases and backend deployments. The models below are recommendations, but the live `models[]` array is the final authority.
 
-## Top 5 recommended models
+## Discover & health
 
-Based on speed, reasoning quality, and reliability:
+```bash
+af changelog --json           # What's new in the CLI — model additions/removals
+af context --json              # AI agent orientation, env vars, invocation guidance
+af bootstrap --strict --json   # Health check — exits non-zero if degraded
+```
+
+`af bootstrap` returns an `invocation` block and `data_fresh` boolean. If `data_fresh: false`, the backend is degraded — don't rely on stale model data from a degraded response. `af bootstrap --strict` exits non-zero when the backend is unhealthy, so CI/automation can abort before choosing models against a degraded workspace.
+
+> **Verification rule:** Before recommending any model, check `models[]` from `af bootstrap --json`. If a model is absent from that list, warn the user and fall back to a confirmed model.
+
+---
+
+## Author's Top 3 Recommendations
+
+These are the author's personal picks based on reliability, reasoning quality, and speed:
+
+| Rank | Model | Role | Why |
+|------|-------|------|-----|
+| 1st | `deepseek-v4-flash` | **Primary default** | Best all-rounder — strong reasoning, reliable tool use, good speed. Replaces the older GLM 4.7 Flash default. |
+| 2nd | `gemini-2.5-flash-lite` | **Fallback / media** | Fastest option with media support. Use when speed matters more than reasoning depth. |
+| 3rd | `qwen-3.5-flash` | **Deep verification** | Deepest thinker — use when reasoning depth and verification matter most. |
+
+> **Note:** `deepseek-v4-flash` and `gemini-2.5-flash-lite` may not appear in every CLI release's hardcoded `KNOWN_MODELS` list if they ship between releases. Always verify against `af bootstrap --json > models[]`. If absent, the backend may still serve them — proceed with a dry-run to confirm.
+
+---
+
+## Upstream Canonical Models
+
+The CLI's built-in validator recognizes these models as of v1.10.5. They are always safe to use:
+
+```
+agenticflow/deepseek-v3.2
+agenticflow/gemma-4-31b-it
+agenticflow/gemma-4-26b-a4b-it
+agenticflow/gemini-2.0-flash
+agenticflow/gpt-4o-mini
+agenticflow/qwen-3.5-flash
+```
+
+### Model characteristics
 
 | Model | Speed | Reasoning | Best for |
 |-------|-------|-----------|----------|
-| `agenticflow/glm-4.7-flash` | 18s | 931 tokens | Default choice — reasoning, tools, best all-rounder |
-| `agenticflow/gemini-2.5-flash-lite` | 13s | Hidden by default | Fastest, media support, good fallback |
-| `agenticflow/gpt-5-nano` | 19s | 1,792 tokens | Reasoning + vision, needs max_tokens ≥ 4000 |
-| `agenticflow/qwen-3.5-flash` | 33s | 5,016 tokens | Deep verification, deepest thinker |
-| `agenticflow/deepseek-v3.2-speciale` | 51s | 1,308 tokens | Heavyweight reasoning, high intelligence |
+| `agenticflow/deepseek-v3.2` | Medium | Strong | Reliable reasoning, good tool use |
+| `agenticflow/gemma-4-31b-it` | Fast | Light | General purpose, high-volume |
+| `agenticflow/gemma-4-26b-a4b-it` | Fast | Light | General purpose, slightly smaller context |
+| `agenticflow/gemini-2.0-flash` | Fast | Light | **Deprecated** — still served but being replaced by 2.5 Flash Lite |
+| `agenticflow/gpt-4o-mini` | Fast | Light | **Default for blueprints** (v1.8.1+) — follows system prompts reliably, good for tool calling |
+| `agenticflow/qwen-3.5-flash` | Medium-Deep | Very strong | Deep verification, complex reasoning |
 
-## Fast non-reasoning models
+### Default model change (v1.8.1+)
 
-For simple tasks where speed matters most:
+- **Before v1.8.1:** Default was `agenticflow/gemini-2.0-flash`
+- **After v1.8.1:** Default is `agenticflow/gpt-4o-mini`
+- **Reason for change:** Gemini 2.0 Flash refuses `web_search` on "latest X" prompts citing knowledge cutoff, even with explicit system prompt rules. GPT-4o-mini follows system prompts and calls tools reliably.
 
-| Model | Speed | Best for |
-|-------|-------|----------|
-| `agenticflow/gpt-4o-mini` | 6s | Simple agents, high-volume |
-| `agenticflow/gemma-4-31b-it` | 7s | General purpose, correct |
-| `agenticflow/gemma-4-26b-a4b-it` | 8s | General purpose, correct |
+---
 
 ## Model selection guide
 
 **Need a default?**
 ```bash
-# Start with GLM-4.7 Flash — best all-rounder with reasoning
-af agent create --body '{"name":"My Agent","model":"agenticflow/glm-4.7-flash","project_id":"<id>"}' --json
+# Author's primary recommendation — deepseek-v4-flash
+af agent create --body '{"name":"My Agent","model":"deepseek-v4-flash","project_id":"<id>"}' --json
 
-# If you need maximum speed and don't need reasoning, use Gemini 2.5 Flash Lite
-af agent create --body '{"name":"My Agent","model":"agenticflow/gemini-2.5-flash-lite","project_id":"<id>"}' --json
+# Or use the upstream blueprint default — gpt-4o-mini
+af agent create --body '{"name":"My Agent","model":"agenticflow/gpt-4o-mini","project_id":"<id>"}' --json
+
+# For maximum speed with media support
+af agent create --body '{"name":"My Agent","model":"gemini-2.5-flash-lite","project_id":"<id>"}' --json
 ```
 
 **Need reasoning?**
-- Default reasoning: `glm-4.7-flash` (18s, 931 tokens) — already the default above
-- Vision + reasoning: `gpt-5-nano` (19s)
-- Deep verification: `qwen-3.5-flash` (33s, 5K reasoning tokens)
-- Maximum reasoning: `deepseek-v3.2-speciale` (51s)
+- Deep verification: `qwen-3.5-flash` — deepest thinker
+- Reliable tool use + reasoning: `deepseek-v3.2` or `deepseek-v4-flash`
 
 **Need speed only?**
-- Fastest correct: `gpt-4o-mini` (6s)
-- Fast + large context: `gemma-4-31b-it` (7s)
+- Fastest correct: `gpt-4o-mini` or `gemma-4-31b-it`
+
+---
 
 ## Workforce model selection
 
 All agents in a workforce inherit the model:
 ```bash
-af workforce init --blueprint dev-shop --model agenticflow/glm-4.7-flash --name "My Team" --json
+# Default (v1.8.1+)
+af workforce init --blueprint dev-shop --model agenticflow/gpt-4o-mini --name "My Team" --json
+
+# Or use author's primary pick
+af workforce init --blueprint dev-shop --model deepseek-v4-flash --name "My Team" --json
 ```
+
+---
 
 ## Reasoning configuration
 
@@ -86,7 +132,9 @@ Check the full agent schema (for all fields):
 af schema agent --json
 ```
 
-For Gemini 2.5 Flash Lite, reasoning is hidden by default. Configure via `thinking_config` to expose.
+For models with hidden reasoning (e.g. some Gemini variants), configure via `thinking_config` to expose reasoning tokens.
+
+---
 
 ## Verify model availability
 
@@ -95,31 +143,34 @@ For Gemini 2.5 Flash Lite, reasoning is hidden by default. Configure via `thinki
 af agent create --body @agent.json --dry-run --json
 ```
 
-The CLI validates the model string at create time. Typos fail fast with an actionable hint listing known models.
+The CLI validates the model string at create time. Typos fail fast with an actionable hint listing known models. If you pass a `vendor/model-name`-shaped string not in the known list, the CLI warns but allows it to proceed — so brand-new models work before the CLI is updated.
+
+---
 
 ## Avoid these models
 
-Based on benchmark testing (April 2026):
+Based on upstream changelog and known issues:
 
 | Model | Issue |
 |-------|-------|
-| `agenticflow/claude-3-5-haiku` | Fast (4s) but wrong on reasoning tasks. Use for writing only, never logic. |
-| `agenticflow/gemini-2.0-flash` | Deprecated, replaced by 2.5 Flash Lite |
+| `agenticflow/gemini-2.0-flash` | Deprecated, replaced by 2.5 Flash Lite. Still served but default changed to gpt-4o-mini. |
 | `agenticflow/gemini-2.0-flash-lite` | Deprecated, replaced by 2.5 Flash Lite |
-| `agenticflow/google-gemini-1.5-flash` | Legacy, may be deprecated |
-| `agenticflow/gpt-oss-120b` | Intermittent failures (Groq backend issues) |
-| `agenticflow/gpt-oss-20b` | Intermittent failures |
 
-## Fallback reasoning models
+> In general, if a model is absent from `af bootstrap --json > models[]`, it may have been deprecated or renamed. Check the `hint` field on 400/422 errors for alternatives.
 
-If top 5 unavailable:
+---
 
-| Model | Speed | Notes |
-|-------|-------|-------|
-| `agenticflow/qwen-3.5-9b` | 41s | Flaky (finish_reason=error despite correct reasoning) |
-| `agenticflow/glm-4.5-air` | 48s | Needs max_tokens ≥ 4000 or truncates |
-| `agenticflow/deepseek-v3.2` | 55s | Works but slower than Speciale |
-| `agenticflow/deepseek-v3.2-exp` | 29s | Correct without exposing reasoning tokens |
+## Fallback model guide
+
+If your preferred model is unavailable:
+
+1. Run `af bootstrap --json` and check `models[]`
+2. Pick the closest match from the confirmed list above
+3. Use `--dry-run` on create to validate before deploying
+4. For reasoning-heavy tasks: fall back to `qwen-3.5-flash` or `deepseek-v3.2`
+5. For speed-first tasks: fall back to `gpt-4o-mini` or `gemma-4-31b-it`
+
+---
 
 ## Cleanup
 
@@ -128,11 +179,13 @@ Test agents consume credits. Delete when done:
 af agent delete --agent-id <id> --json
 ```
 
+---
+
 ## On errors
 
-- **400 / Invalid model** → Check `models[]` from bootstrap; model may have been renamed
+- **400 / Invalid model** → Check `models[]` from bootstrap; model may have been renamed or is not yet in the CLI's hardcoded list. Try `--dry-run` first.
 - **402 / Payment Required** → Model requires credits; see `agenticflow-built-in-credits` skill
 - **422 / Model not available** → Model temporarily unavailable; the `hint` suggests alternatives
-- **finish_reason=length** → Increase `max_tokens` (especially for GPT-5 Nano and GLM-4.5 Air)
+- **finish_reason=length** → Increase `max_tokens` in `model_user_config`
 
 When `hint` is non-empty, follow it before retrying.

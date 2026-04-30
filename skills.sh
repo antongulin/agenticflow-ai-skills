@@ -1,44 +1,91 @@
 #!/usr/bin/env bash
-# skills.sh — Install AgenticFlow AI skills into your project
-# Usage:
-#   curl -fsSL https://raw.githubusercontent.com/antongulin/agenticflow-ai-skills/main/skills.sh | bash        # install all
-#   curl -fsSL https://raw.githubusercontent.com/antongulin/agenticflow-ai-skills/main/skills.sh | bash -s -- agenticflow-agent  # install one
+# skills.sh — Install AgenticFlow AI skills
+# Supports: Claude Code, Cursor, OpenCode, Codex, Gemini CLI
+#
+# Install all:
+#   curl -fsSL https://raw.githubusercontent.com/antongulin/agenticflow-ai-skills/main/skills.sh | bash
+#
+# Install one:
+#   curl -fsSL https://raw.githubusercontent.com/antongulin/agenticflow-ai-skills/main/skills.sh | bash -s -- agenticflow-agent
 
 set -euo pipefail
 
 REPO="antongulin/agenticflow-ai-skills"
 BRANCH="main"
-API_URL="https://api.github.com/repos/${REPO}/contents/skills"
 RAW_URL="https://raw.githubusercontent.com/${REPO}/${BRANCH}/skills"
 
-# Detect target directory
+# Auto-detect which AI tool we're in
 detect_target_dir() {
-  if [ -d ".claude/skills" ]; then
-    echo ".claude/skills"
-  elif [ -d ". cursor/skills" ]; then
-    echo ".cursor/skills"
-  elif [ -d "skills" ]; then
-    echo "skills"
-  else
-    echo ""
-  fi
+  # Check project-level first (cwd), then global
+  for dir in \
+    ".claude/skills" \
+    ".cursor/skills" \
+    ".opencode/skills" \
+    ".codex/skills" \
+    ".gemini/skills"; do
+    if [ -d "$dir" ]; then
+      echo "$dir"
+      return
+    fi
+  done
+
+  # Check global install locations
+  for dir in \
+    "$HOME/.claude/skills" \
+    "$HOME/.config/opencode/skills" \
+    "$HOME/.cursor/skills" \
+    "$HOME/.codex/skills" \
+    "$HOME/.gemini/skills"; do
+    if [ -d "$dir" ]; then
+      echo "$dir"
+      return
+    fi
+  done
+
+  # Guess based on common config files
+  for marker in ".claude" ".cursor" ".opencode" ".codex" ".gemini"; do
+    if [ -d "$marker" ]; then
+      echo "${marker}/skills"
+      return
+    fi
+  done
+
+  # Nothing detected — create a .skills/ fallback
+  echo ""
 }
 
-echo "🔧 AgenticFlow AI Skills Installer"
-echo "==================================="
+echo "╔══════════════════════════════════════════╗"
+echo "║   AgenticFlow AI Skills Installer        ║"
+echo "╚══════════════════════════════════════════╝"
 echo ""
 
-# Allow override
+ALL_KNOWN_SKILLS=(
+  "agenticflow-agent"
+  "agenticflow-workforce"
+  "agenticflow-mcp"
+  "agenticflow-llm-models"
+  "agenticflow-built-in-credits"
+)
+
 TARGET_DIR="${SKILLS_DIR:-$(detect_target_dir)}"
 
 if [ -z "$TARGET_DIR" ]; then
-  echo "⚠️  Could not auto-detect skills directory."
-  echo "    Set SKILLS_DIR to specify where to install, e.g.:"
-  echo "    SKILLS_DIR=./skills curl -fsSL ... | bash"
+  echo "⚠️  Could not detect your AI tool's skills directory."
+  echo ""
+  echo "   Tell me where to install by setting SKILLS_DIR:"
+  echo ""
+  echo "   Claude Code:   SKILLS_DIR=.claude/skills"
+  echo "   Cursor:        SKILLS_DIR=.cursor/skills"
+  echo "   OpenCode:      SKILLS_DIR=.opencode/skills"
+  echo "   Codex:         SKILLS_DIR=.codex/skills"
+  echo "   Gemini CLI:    SKILLS_DIR=.gemini/skills"
+  echo ""
+  echo "   Example:"
+  echo "   SKILLS_DIR=.claude/skills curl -fsSL ... | bash"
   exit 1
 fi
 
-echo "📂 Installing to: $TARGET_DIR"
+echo "📂 Target: $TARGET_DIR"
 mkdir -p "$TARGET_DIR"
 
 install_skill() {
@@ -46,56 +93,49 @@ install_skill() {
   local skill_dir="$TARGET_DIR/$skill_name"
   local skill_url="${RAW_URL}/${skill_name}/SKILL.md"
 
-  echo "  📥 Installing: $skill_name"
+  echo -n "   ${skill_name} ... "
   mkdir -p "$skill_dir"
-  
+
   if curl -fsSL "$skill_url" -o "$skill_dir/SKILL.md" 2>/dev/null; then
-    echo "     ✅ $skill_name installed"
+    echo "✅"
   else
-    echo "     ❌ Failed to download $skill_name"
+    echo "❌ (download failed)"
     return 1
   fi
 }
 
-# Determine which skills to install
-if [ $# -eq 0 ]; then
-  echo "🚀 Installing ALL skills..."
-  echo ""
-  
-  # List all skills from the repository
-  echo "  📋 Listing available skills..."
-  
-  skills=()
-  while IFS= read -r line; do
-    name=$(echo "$line" | grep -o '"name":"[^"]*"' | cut -d'"' -f4)
-    type=$(echo "$line" | grep -o '"type":"[^"]*"' | cut -d'"' -f4)
-    if [ "$type" = "dir" ] && [ -n "$name" ]; then
-      skills+=("$name")
-    fi
-  done < <(curl -fsSL "$API_URL?ref=$BRANCH" | tr '}' '\n')
-  
-  if [ ${#skills[@]} -eq 0 ]; then
-    # Fallback to known skills if API fails
-    skills=("agenticflow-agent" "agenticflow-workforce" "agenticflow-mcp" "agenticflow-llm-models" "agenticflow-built-in-credits")
-    echo "  ⚠️  Could not fetch from API, using built-in list"
-  fi
-  
-  for skill in "${skills[@]}"; do
-    install_skill "$skill"
-  done
+# Which skills to install
+if [ $# -gt 0 ]; then
+  SKILLS=("$@")
 else
-  # Install specific skill(s)
-  for skill_name in "$@"; do
-    install_skill "$skill_name"
-  done
+  SKILLS=("${ALL_KNOWN_SKILLS[@]}")
+  echo "🚀 Installing all ${#SKILLS[@]} skills..."
 fi
+echo ""
+
+FAILED=0
+for skill in "${SKILLS[@]}"; do
+  install_skill "$skill" || FAILED=$((FAILED+1))
+done
 
 echo ""
-echo "✅ Done! Skills installed to: $TARGET_DIR"
+echo "━ Installed: $(( ${#SKILLS[@]} - FAILED ))/${#SKILLS[@]} skills to $TARGET_DIR"
+if [ $FAILED -gt 0 ]; then
+  echo "━ Failed: $FAILED"
+fi
 echo ""
-echo "🎯 Next steps:"
-echo "    1. Make sure you have the AgenticFlow CLI: npm install -g @pixelml/agenticflow-cli"
-echo "    2. Run: af bootstrap --json"
-echo "    3. Check your AI tool docs for how to load local skills"
-echo ""
-echo "📚 Read more: https://github.com/${REPO}"
+
+if [ $FAILED -eq 0 ]; then
+  echo "✅ Ready — ask your AI agent to help, e.g.:"
+  echo "   'create an agent for customer support'"
+  echo "   'deploy a dev shop workforce'"
+  echo "   'attach google sheets to my agent'"
+  echo "   'what model should i use'"
+  echo "   'generate an image using my credits'"
+  echo ""
+  echo "💡 Prerequisite: npm install -g @pixelml/agenticflow-cli"
+  echo "📖 Docs: https://github.com/${REPO}"
+else
+  echo "⚠️  $FAILED skill(s) failed to install. Check your connection and try again."
+  exit 1
+fi

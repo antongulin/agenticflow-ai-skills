@@ -4,7 +4,7 @@ description: "Deploy and operate a multi-agent AgenticFlow workforce — a DAG o
 compatibility: Claude Code, Claude Desktop, Codex, Cursor, Gemini CLI
 metadata:
   author: PixelML
-  version: "3.0.0"
+  version: "4.0.0"
   license: MIT
 triggers:
   - "workforce"
@@ -47,6 +47,16 @@ Returns `auth`, `agents`, `workforces`, `blueprints`, `commands`, `playbooks`, `
 
 If `data_fresh: false` in the bootstrap response, the backend is degraded — **do not mutate**. Run `af doctor --json --strict` and fix auth/network before proceeding.
 
+## Discovery & health
+
+```bash
+af changelog --json           # What's new in the CLI since your last install
+af context --json              # AI agent orientation, env vars, invocation guidance
+af bootstrap --strict --json   # Health check — exits non-zero if degraded
+```
+
+`af bootstrap` returns an `invocation` block telling you the correct CLI binary to use. `af bootstrap --strict` exits non-zero when the backend is unhealthy, so CI/automation can abort before mutating against a degraded workspace.
+
 ## The built-in blueprints
 
 | Blueprint | Required slots | Optional |
@@ -60,6 +70,46 @@ If `data_fresh: false` in the bootstrap response, the backend is degraded — **
 | `tutor` | ceo, cmo, engineer, researcher | general |
 | `freelancer` | ceo, cmo, engineer, researcher | general |
 
+## Blueprint discovery
+
+```bash
+af blueprints list --json                              # All blueprints
+af blueprints list --kind workforce --json            # Filter by kind
+af blueprints list --complexity 6 --json              # Multi-agent DAGs only
+af blueprints get --id <slug> --json                 # Single blueprint detail
+af blueprints show <slug> --json                     # Alias for get
+```
+
+Each blueprint response includes:
+- `kind` — `workflow` | `agent` | `workforce` (canonical, v1.10.0+)
+- `complexity` — `0-6` rung on the composition ladder
+- `tier` — legacy field, returns `null` if not explicitly set — **ignore** (v1.10.4 fix)
+- `deploy_command` — ready-to-run command string (e.g. `af workforce init --blueprint X --json`)
+- `use_cases` — what this blueprint is good for
+
+### All workforce blueprints
+
+| Blueprint | Kind | Complexity | Type | Plugins pre-attached? |
+|-----------|------|------------|------|----------------------|
+| `dev-shop` | workforce | 6 | Vertical team | No — attach MCP after deploy |
+| `marketing-agency` | workforce | 6 | Vertical team | No |
+| `sales-team` | workforce | 6 | Vertical team | No |
+| `content-studio` | workforce | 6 | Vertical team | No |
+| `support-center` | workforce | 6 | Vertical team | No |
+| `amazon-seller` | workforce | 6 | Vertical team | No |
+| `tutor` | workforce | 6 | Vertical team | No |
+| `freelancer` | workforce | 6 | Vertical team | No |
+| `research-pair` | workforce | 6 | Plugin-based | **Yes** — v1.9.0+
+| `content-duo` | workforce | 6 | Plugin-based | **Yes** |
+| `api-pipeline` | workforce | 6 | Plugin-based | **Yes** |
+| `fact-check-loop` | workforce | 6 | Plugin-based | **Yes** |
+| `parallel-research` | workforce | 6 | Plugin-based | **Yes** — synthesizer topology |
+
+**Plugin-based blueprints** (v1.9.0+) have tools pre-attached to every agent slot — no post-deploy `af agent update --patch` needed.
+**Vertical team blueprints** need MCP clients attached after `init`.
+
+---
+
 ## One-command deploy (v1.6+)
 
 Always preview with `--dry-run` first:
@@ -71,7 +121,41 @@ af workforce init --blueprint <slug> --name "<name>" --json
 
 `init` creates the workforce + one real agent per required slot + the wired graph — in a single atomic call. On failure, every resource is rolled back automatically; inspect `details.rolled_back_agents` and `details.rolled_back_workforce` in the error.
 
-Use `--include-optional-slots` to fill every slot, not just required ones. Use `--model <id>` (e.g. `agenticflow/gemini-2.0-flash`) to override the default model for all auto-created agents.
+Use `--include-optional-slots` to fill every slot, not just required ones. Use `--model <id>` to override the default model for all auto-created agents.
+
+> **Default model change:** Since CLI v1.8.1, blueprint agents default to `agenticflow/gpt-4o-mini` (not `gemini-2.0-flash`). GPT-4o-mini follows system prompts and reliably calls tools; Gemini 2.0 Flash sometimes refuses `web_search` on "latest X" prompts citing cutoff.
+
+## Workflow blueprints (deterministic pipelines)
+
+Workforce is NOT the only multi-agent primitive. For simpler, deterministic pipelines (no agent hand-off), use workflow blueprints instead (rung 0-2):
+
+```bash
+# Rung 0: Single-node hello
+af workflow init --blueprint llm-hello --json
+
+# Rung 1: Chained LLM nodes
+af workflow init --blueprint llm-chain --json
+
+# Rung 2: Web retrieval + summarize
+af workflow init --blueprint summarize-url --json
+af workflow init --blueprint api-summary --json
+af workflow init --blueprint email-to-structured --json        # v1.10.5
+af workflow init --blueprint rss-digest-email --json           # v1.10.5
+af workflow init --blueprint competitor-url-snapshot --json    # v1.10.5
+af workflow init --blueprint job-app-package --json           # v1.10.5
+af workflow init --blueprint n8n-converter --json             # v1.10.5
+```
+
+Workflows require an LLM-provider connection (straico, openai, anthropic). `af workflow init` auto-discovers it.
+
+**Workflow runs support --wait** (v1.10.2):
+```bash
+af workflow run --workflow-id <id> --body '{"field":"value"}' --wait --timeout 180 --poll-interval 3 --json
+# Polls until terminal. Exits code 2 if failed/cancelled/error.
+# Also auto-unwraps {"input":{...}} to flat body when top-level has only that key.
+```
+
+---
 
 ## Custom workforce (no blueprint fits)
 
@@ -106,12 +190,88 @@ af workforce run --workforce-id <id> --trigger-data '{"message":"..."}'
 # payload in {trigger_data: ...} — don't wrap it yourself.
 
 af workforce publish --workforce-id <id> --json
-# Mints a public_key + public_url — hand this to teammates so they can run the
-# workforce without platform auth.
+# Mints a public_key + public_url.
+# Returns `_links.workforce_canvas` (Web UI) and `_links.public_run_curl` (ready-to-paste curl).
+# Backend used to return 404 paths; CLI now overrides with correct ones.
 
 af workforce versions publish --workforce-id <id> --version-id <v> --json
 # Snapshot + publish a specific version (draft/published/restore workflow).
 ```
+
+### Workforce run fixes (v1.10.2)
+- `af workforce publish` now returns correct `_links.public_run_curl` — copy-paste directly
+- `af workforce runs get --workforce-id <id> --run-id <id>` flag added for parity
+- `af workforce runs stop --workforce-id <id> --run-id <id>` flag added for parity
+
+### When `workforce run` fails with API-key auth
+The backend sometimes rejects API-key auth on `workforce run` with `Failed to retrieve user info`. This is a known server-side limitation. The CLI prints a 3-step workaround:
+1. Publish the workforce (`af workforce publish`)
+2. Run via the public SSE endpoint (uses `public_key`)
+3. Check status with `af workforce runs list`
+
+---
+
+## Live marketplace (beyond built-in blueprints)
+
+When built-in blueprints don't cover the use case, browse the live catalog:
+
+```bash
+af marketplace list --type mas_template --json              # MAS / workforce templates
+af marketplace list --type agent_template --json             # Single-agent templates
+af marketplace list --type workflow_template --json        # Workflow templates
+```
+
+Clone a marketplace item into your workspace:
+```bash
+af marketplace try --id <item_id> --dry-run --json
+af marketplace try --id <item_id> --json
+```
+
+> **Cross-workspace caveat:** MAS template clones may reference source-workspace `agent_id`s. Check the `warnings` field in the response and duplicate source agents separately, or the workforce will 400 on runs.
+
+### Workforce template duplication
+```bash
+af templates duplicate workforce --template-id <marketplace_mas_id> --dry-run --json
+# Or duplicate from an existing workforce:
+af templates duplicate workforce --workforce-id <id> --dry-run --json
+```
+
+---
+
+## Workspace migration (company export/import)
+
+### Export workspace agents
+```bash
+af company export --file agents.yaml --json
+# Produces a portable YAML with agent definitions.
+```
+
+### Import into another workspace
+```bash
+af company import --file agents.yaml --dry-run --json   # Preview changes
+af company import --file agents.yaml --json              # Execute
+```
+Match key: agent name. Existing agents → update (PUT all fields). Missing agents → create.
+
+### Diff before importing
+```bash
+af company diff --file agents.yaml --json
+# Read-only comparison. Returns per-agent status: new | modified | in_sync | remote_only.
+```
+
+### Merge with conflict strategy
+```bash
+af company merge --file agents.yaml --strategy local --dry-run --json
+af company merge --file agents.yaml --strategy local --json
+```
+Strategies:
+- `local` — overwrite remote with local (update modified, create new, skip no_change)
+- `remote` — keep live state (skip all modified)
+- `skip` — do nothing (report only)
+
+> **Never deletes:** Remote-only agents are reported but NEVER deleted by any strategy.
+
+---
 
 ## Attach MCP tools per agent (not per workforce)
 

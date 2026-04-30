@@ -1,0 +1,25 @@
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# AI tool working dirs (these are created by users, not committed)
+.opencode/
+.claude/
+.cursor/
+.codex/
+.gemini/
+
+# Temp / workspace
+*.log
+tmp/
+
+# Secrets
+.env
+*.secret
+credentials.json
