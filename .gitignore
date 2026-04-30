@@ -15,6 +15,9 @@ Thumbs.db
 .codex/
 .gemini/
 
+# learnship planning (local only, never committed to remote)
+.planning/
+
 # Temp / workspace
 *.log
 tmp/
