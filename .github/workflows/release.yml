@@ -112,7 +112,7 @@ jobs:
           VERSIONS=""
           for skill in skills/*/SKILL.md; do
             name=$(basename $(dirname $skill))
-            ver=$(grep -o '"version": *"[^"]*"' "$skill" | head -1 | cut -d'"' -f4 || echo "?")
+            ver=$(grep -o 'version: *"[^"]*"' "$skill" | head -1 | cut -d'"' -f2 || echo "?")
             VERSIONS="${VERSIONS}- ${name}: ${ver}\n"
           done
           echo "versions<<EOF" >> $GITHUB_OUTPUT
