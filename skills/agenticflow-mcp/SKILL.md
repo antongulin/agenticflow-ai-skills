@@ -23,8 +23,6 @@ triggers:
   - "composio"
 ---
 
-> **Author**: Anton Gulin · **Tool**: [opencode-skill-creator](https://github.com/antongulin/opencode-skill-creator) · **GitHub**: [@antongulin](https://github.com/antongulin) · **Registry**: [skills.sh](https://www.skills.sh/docs)
-
 # AgenticFlow MCP
 
 > **Do NOT install the legacy `agenticflow-mcp` standalone server repo.** It is stale (last release lags the current platform by many versions) and is **not the recommended integration path**. Everything below uses the `af` CLI (install via `npm install -g @pixelml/agenticflow-cli`), which covers MCP operations comprehensively and stays in lockstep with platform changes.

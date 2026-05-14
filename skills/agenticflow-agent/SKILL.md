@@ -10,8 +10,6 @@ triggers:
   - "create an agent"
 ---
 
-> **Author**: Anton Gulin · **Tool**: [opencode-skill-creator](https://github.com/antongulin/opencode-skill-creator) · **GitHub**: [@antongulin](https://github.com/antongulin) · **Registry**: [skills.sh](https://www.skills.sh/docs)
-
 
 # AgenticFlow Agent
 

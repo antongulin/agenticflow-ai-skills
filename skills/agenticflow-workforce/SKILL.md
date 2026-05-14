@@ -1,20 +1,4 @@
 ---
-name: agenticflow-workforce
-description: "Deploy and operate a multi-agent AgenticFlow workforce — a DAG of agents that hand off to each other (trigger → coordinator → worker agents → output). Use when the user asks for a team, pipeline, or multi-agent system: research-then-write, triage-then-specialist, dev shop, marketing agency, sales team, content studio, support center, Amazon seller team. Choose this skill over agenticflow-agent when the ask mentions 'team', 'workforce', 'pipeline', 'multiple agents', 'delegation', 'handoff', or names a built-in blueprint. Provides the `af workforce *` command surface, blueprint decisions, graph wiring, MCP attach recipes, and public URL publishing."
-compatibility: Claude Code, Claude Desktop, Codex, Cursor, Gemini CLI
-metadata:
-  author: PixelML
-  version: "4.0.0"
-  license: MIT
-triggers:
-  - "workforce"
-  - "multi-agent"
-  - "agent team"
-  - "deploy a team"
-  - "agent pipeline"
-  - "research-then-write"
-
-> **Author**: Anton Gulin · **Tool**: [opencode-skill-creator](https://github.com/antongulin/opencode-skill-creator) · **GitHub**: [@antongulin](https://github.com/antongulin) · **Registry**: [skills.sh](https://www.skills.sh/docs)
 
 # AgenticFlow Workforce
 

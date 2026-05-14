@@ -3,17 +3,47 @@
 [![skills.sh](https://skills.sh/b/antongulin/agenticflow-ai-skills)](https://skills.sh/antongulin/agenticflow-ai-skills)
 [![License](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)](LICENSE)
 
-Open-source skills that teach AI coding agents how to use [AgenticFlow AI](https://agenticflow.ai).
+AI agent skills for [AgenticFlow AI](https://agenticflow.ai) — create agents, deploy teams, connect tools, pick models, and manage credits.
 
-No coding required. Copy one command, paste it into your terminal, and your AI assistant learns to build agents, teams, connect tools, pick models, and manage credits.
+> **Author**: Anton Gulin · **Tool**: [opencode-skill-creator](https://github.com/antongulin/opencode-skill-creator) · **GitHub**: [@antongulin](https://github.com/antongulin) · **Registry**: [skills.sh](https://www.skills.sh/docs)
 
----
+Skills package providing AI coding assistants with structured instructions for using the AgenticFlow AI platform. No coding required — copy one command, paste it into your terminal, and your AI assistant learns to build agents, teams, connect tools, pick models, and manage credits.
 
-## Install
+## Skills
 
-### Option 1 — `npx skills add` (recommended)
+### [agenticflow-agent](/skills/agenticflow-agent)
 
-Open your terminal **in your project folder** and run:
+Create, run, and iterate on a single AI agent — chatbots, support assistants, prompt experiments. Covers `af agent create/update/run/delete`, the `--patch` partial-update pattern, schema inspection, and safe iteration loops.
+
+*Author: PixelML*
+
+### [agenticflow-workforce](/skills/agenticflow-workforce)
+
+Deploy multi-agent teams that hand off to each other — dev shops, marketing agencies, sales pipelines, content studios. Covers `af workforce *`, blueprint decisions, graph wiring, MCP attach recipes, and public URL publishing.
+
+*Author: PixelML*
+
+### [agenticflow-mcp](/skills/agenticflow-mcp)
+
+Attach external tool providers (Google Docs, Google Sheets, Slack, Notion, GitHub, Apify) to an agent via MCP clients. Covers `af mcp-clients list/inspect`, Pipedream vs Composio distinction for parametric writes.
+
+*Author: PixelML*
+
+### [agenticflow-built-in-credits](/skills/agenticflow-built-in-credits)
+
+Purchase and manage built-in credits — the prepaid balance for agent and workforce runs. Covers `af credit purchase/receipts/usage/plans`, auto-recharge, payment card setup via `af setup`, and usage monitoring.
+
+*Author: Anton Gulin*
+
+### [agenticflow-llm-models](/skills/agenticflow-llm-models)
+
+List, filter, and recommend LLM models available in your workspace. Uses the live `af get /models` as the authoritative source. Covers reasoning vs speed trade-offs, cost comparisons, and model selection for specific tasks.
+
+*Author: Anton Gulin*
+
+## Installation
+
+### Using the Skills CLI (recommended)
 
 ```bash
 npx skills add antongulin/agenticflow-ai-skills --all
@@ -21,58 +51,44 @@ npx skills add antongulin/agenticflow-ai-skills --all
 
 This installs all 5 skills automatically. Works with 50+ AI coding tools including Claude Code, Cursor, OpenCode, Codex, and Gemini CLI.
 
-#### Install a specific skill
-
+**Install a specific skill:**
 ```bash
 npx skills add antongulin/agenticflow-ai-skills --skill agenticflow-agent
 ```
 
-Replace `agenticflow-agent` with any skill name from the table below.
-
-#### Install globally (available across all projects)
-
+**Global scope (all projects):**
 ```bash
 npx skills add antongulin/agenticflow-ai-skills --global
 ```
 
-#### See what's available before installing
-
+**Preview before installing:**
 ```bash
 npx skills add antongulin/agenticflow-ai-skills --list
 ```
 
-### Option 2 — Manual install
+### Manual
 
-Prefer to set up skills by hand? See the [manual install guide →](INSTALL.md)
+Clone the repo and copy the skills to your agent's skills path:
 
----
-
-## What's included
-
-| Skill | What it does | Author |
-|-------|-------------|--------|
-| **agenticflow-agent** | Create single AI agents — chatbots, support bots, assistants | PixelML |
-| **agenticflow-workforce** | Deploy teams of agents that work together — dev shops, marketing teams, sales pipelines | PixelML |
-| **agenticflow-mcp** | Connect agents to Google Sheets, Slack, Notion, GitHub, and more | PixelML |
-| **agenticflow-llm-models** | Choose the right AI model — speed vs reasoning vs cost | Anton Gulin |
-| **agenticflow-built-in-credits** | Use your existing credits first before paying extra for external APIs | Anton Gulin |
-
----
-
-## After installing — try these
-
-Ask your AI agent any of these:
-
-```
-"Create a customer support agent for my website"
-"Deploy a dev shop team with CEO, engineer, and QA agents"
-"Connect my agent to Google Sheets so it can log outputs"
-"What's the best model for deep reasoning tasks?"
-"I want to generate an image using my existing credits"
-"Export all my agents so I can move them to another workspace"
+```bash
+git clone https://github.com/antongulin/agenticflow-ai-skills.git
+cp -r agenticflow-ai-skills/skills/* <agent-skills-path>/
 ```
 
----
+Replace `<agent-skills-path>` with your agent's skills directory. Common paths:
+
+| Agent | Path |
+|-------|------|
+| Universal | `~/.agents/skills/` |
+| OpenCode | `~/.config/opencode/skills/` |
+| Claude Code | `~/.claude/skills/` |
+| GitHub Copilot | `~/.copilot/skills/` |
+| Cursor | `~/.cursor/skills/` |
+| Gemini CLI | `~/.gemini/skills/` |
+| Codex | `~/.codex/skills/` |
+| Cline | `~/.agents/skills/` |
+
+See the [manual install guide](INSTALL.md) for detailed setup instructions.
 
 ## Requirements
 
@@ -83,30 +99,25 @@ You need two things (both free to start):
 
 No API keys needed to get started.
 
----
+## Try these prompts
 
-## Supported AI tools
+After installing, ask your AI agent:
 
-The skills.sh CLI automatically detects your installed agents and supports 50+ coding tools. Here's a quick reference for the most common ones:
+- "Create a customer support agent for my website"
+- "Deploy a dev shop team with CEO, engineer, and QA agents"
+- "Connect my agent to Google Sheets so it can log outputs"
+- "What's the best model for deep reasoning tasks?"
+- "I want to generate an image using my existing credits"
+- "Export all my agents so I can move them to another workspace"
 
-| Tool | Skill location |
-|------|---------------|
-| Claude Code | `.claude/skills/` or `~/.claude/skills/` |
-| Cursor | `.agents/skills/` |
-| OpenCode | `.agents/skills/` or `~/.config/opencode/skills/` |
-| Codex | `.agents/skills/` |
-| Gemini CLI | `.agents/skills/` |
+## Compatibility
 
----
+Skills are compatible with AI coding assistants that support the [skills.sh](https://www.skills.sh/docs) skill format, including OpenCode, Claude Code, Copilot CLI, Cursor, Codex, Cline, Gemini CLI, and 50+ others.
 
-## License
+## Related
 
-MIT
-
----
-
-## Links
-
-- [AgenticFlow docs](https://docs.agenticflow.ai)
-- [CLI source](https://github.com/PixelML/agenticflow-cli)
-- [Discussions](https://github.com/antongulin/agenticflow-ai-skills/discussions)
+- [AgenticFlow AI](https://agenticflow.ai) — The platform these skills support
+- [AgenticFlow CLI](https://github.com/PixelML/agenticflow-cli) — CLI source
+- [AgenticFlow docs](https://docs.agenticflow.ai) — Official documentation
+- [mole-skills](https://github.com/antongulin/mole-skills) — macOS system maintenance skills by the same author
+- [bundle-social-api-skill](https://github.com/antongulin/bundle-social-api-skill) — Bundle.social API skills by the same author
