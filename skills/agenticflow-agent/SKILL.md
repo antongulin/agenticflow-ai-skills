@@ -8,19 +8,10 @@ metadata:
   license: MIT
 triggers:
   - "create an agent"
-  - "build an agent"
-  - "agent configuration"
-  - "system prompt"
-  - "support bot"
-  - "customer-facing bot"
-  - "single agent"
-  - "agent persona"
-  - "agent update"
-  - "patch agent"
-  - "iterate on agent"
-  - "agent run"
-  - "agent delete"
 ---
+
+> **Author**: Anton Gulin · **Tool**: [opencode-skill-creator](https://github.com/antongulin/opencode-skill-creator) · **GitHub**: [@antongulin](https://github.com/antongulin) · **Registry**: [skills.sh](https://www.skills.sh/docs)
+
 
 # AgenticFlow Agent
 

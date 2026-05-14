@@ -1,12 +1,17 @@
 ---
 name: agenticflow-llm-models
-description: "Select and configure LLM models for AgenticFlow agents and workforces. Use this skill whenever the user asks which model to use, needs reasoning capabilities, wants fast/cheaper options, gets finish_reason=length errors, or asks about model speed/quality/intelligence trade-offs. Covers the top recommended models, upstream canonical models, models to avoid, reasoning configuration, and max_tokens settings."
+description: "List, filter, and recommend LLM models available in the AgenticFlow AI workspace for use in agents and workforce nodes. Should trigger whenever the user mentions LLM models, choosing a provider/model for an agent, model capabilities (reasoning, speed, cost), model selection for specific tasks, or understanding which models are available and their trade-offs. Use the live `af get /models` as the authoritative source. The rest of this skill provides recommendations and context but never overrides the live response."
 compatibility: Claude Code, Claude Desktop, Codex, Cursor, Gemini CLI
 metadata:
   author: Anton Gulin (https://github.com/antongulin)
-  version: "2.0.0"
+  version: "4.0.0"
   license: MIT
+triggers:
+  - "what models are available"
 ---
+
+> **Author**: Anton Gulin · **Tool**: [opencode-skill-creator](https://github.com/antongulin/opencode-skill-creator) · **GitHub**: [@antongulin](https://github.com/antongulin) · **Registry**: [skills.sh](https://www.skills.sh/docs)
+
 
 # AgenticFlow LLM Models
 

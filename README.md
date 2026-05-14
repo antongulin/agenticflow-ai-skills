@@ -1,5 +1,8 @@
 # AgenticFlow AI Skills
 
+[![skills.sh](https://skills.sh/b/antongulin/agenticflow-ai-skills)](https://skills.sh/antongulin/agenticflow-ai-skills)
+[![License](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)](LICENSE)
+
 Open-source skills that teach AI coding agents how to use [AgenticFlow AI](https://agenticflow.ai).
 
 No coding required. Copy one command, paste it into your terminal, and your AI assistant learns to build agents, teams, connect tools, pick models, and manage credits.

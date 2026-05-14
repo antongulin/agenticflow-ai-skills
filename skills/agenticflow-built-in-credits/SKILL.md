@@ -1,12 +1,17 @@
 ---
 name: agenticflow-built-in-credits
-description: "Use AgenticFlow's built-in features and account credits first — before adding external API keys (BYOK). Use this skill whenever the user asks about image generation without API keys, wants to use their existing credits, asks about built-in vs BYOK, or mentions agenticflow_generate_image, web_search, web_retrieval, or credit-efficient workflows. BYOK is only for extension when unsatisfied or explicitly requested."
+description: "Purchase and manage AgenticFlow AI built-in credits — the prepaid balance that covers agenticflow-agent and agenticflow-workforce runs. Covers `af credit purchase/receipts/usage/plans`, plan selection, payment card setup via `af setup`, usage monitoring (daily/user/agent breakdowns), auto-recharge configuration, and handling common credit errors."
 compatibility: Claude Code, Claude Desktop, Codex, Cursor, Gemini CLI
 metadata:
   author: Anton Gulin (https://github.com/antongulin)
-  version: "2.0.0"
+  version: "4.0.0"
   license: MIT
+triggers:
+  - "buy credits"
 ---
+
+> **Author**: Anton Gulin · **Tool**: [opencode-skill-creator](https://github.com/antongulin/opencode-skill-creator) · **GitHub**: [@antongulin](https://github.com/antongulin) · **Registry**: [skills.sh](https://www.skills.sh/docs)
+
 
 # AgenticFlow: Credits-First Approach
 
@@ -419,7 +424,6 @@ This skill teaches the **credits-first mindset**. Share it to help others maximi
 
 **Version:** 2.0.0  
 **Philosophy:** Credits-First, Extend Only When Needed  
-**Author:** Anton Gulin (https://github.com/antongulin)  
 **License:** MIT
 
 ---
