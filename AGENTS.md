@@ -105,6 +105,9 @@ follow. The map should become territory.
 
 ## Request Routing Protocol
 
+Start every session by inspecting Git status and worktrees, fetching origin with pruning, safely fast-forwarding local main, and verifying main matches origin/main. Only then create a task branch from synchronized main if needed. Preserve existing task branches and unfinished work. Never reset, discard changes, auto-stash, or force-push merely to synchronize. If safe synchronization is blocked, resolve the blocker before editing or branching.
+
+
 **This section is mandatory. Apply it before responding to ANY user message.**
 
 When a user sends a message — whether it's a vague idea, a specific bug report, a feature request, or a detailed technical prompt — you MUST route it through the correct learnship workflow. **Do not make code changes, fix bugs, or implement anything in direct response to a user message.** Every task goes through a workflow.
