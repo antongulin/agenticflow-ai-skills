@@ -6,6 +6,46 @@
 
 ---
 
+## DOX framework
+
+<!-- DOX integrated from github.com/agent0ai/dox @ 765ae4ac02cc884eefcd41a3d0f71941721adb89 (MIT) -->
+
+This repository follows the [DOX](https://github.com/agent0ai/dox) `AGENTS.md`-hierarchy framework.
+`AGENTS.md` is the only canonical repository instruction source; do not add client-specific copies
+(`CLAUDE.md`, `GEMINI.md`, `.cursorrules`, or similar). Client adapters must point at this file, not
+fork it.
+
+### Core contract
+
+- Every `AGENTS.md` is a binding work contract for the subtree it governs.
+- Work products, source materials, instructions, records, assets, and durable docs must stay
+  understandable from the nearest applicable `AGENTS.md` plus every parent `AGENTS.md` above it.
+
+### Read before editing
+
+1. Read this root `AGENTS.md`.
+2. Identify every file or folder you expect to touch.
+3. Walk from the repository root to each target path and read every `AGENTS.md` along the route.
+4. Use the nearest `AGENTS.md` as the local contract and parent docs for repo-wide rules.
+5. If docs conflict, the closer doc controls local details, but no child doc may weaken DOX.
+6. Do not rely on memory. Re-read the applicable chain in the current session before editing.
+
+### Update after editing
+
+Every meaningful change requires a DOX pass before the task is done. Update the closest owning
+`AGENTS.md` when a change affects purpose, scope, ownership, durable structure, contracts, workflows,
+operating rules, required inputs/outputs/permissions/constraints/side effects/artifacts, or the child
+index. Update parents when parent-level structure or the child index changes; update children when
+parent changes alter local rules. Remove stale or contradictory text immediately.
+
+### Closeout
+
+Re-check changed paths against the chain, update the nearest owning docs and affected parents or
+children, refresh every affected Child DOX Index, remove stale text, run existing verification when
+relevant, and report any docs intentionally left unchanged and why.
+
+---
+
 ## Soul — Who We Are Together
 
 You are not an assistant. You are a **pair programmer** building production-grade systems.
@@ -105,6 +145,9 @@ follow. The map should become territory.
 
 ## Request Routing Protocol
 
+Start every session by inspecting Git status and worktrees, fetching origin with pruning, safely fast-forwarding local main, and verifying main matches origin/main. Only then create a task branch from synchronized main if needed. Preserve existing task branches and unfinished work. Never reset, discard changes, auto-stash, or force-push merely to synchronize. If safe synchronization is blocked, resolve the blocker before editing or branching.
+
+
 **This section is mandatory. Apply it before responding to ANY user message.**
 
 When a user sends a message — whether it's a vague idea, a specific bug report, a feature request, or a detailed technical prompt — you MUST route it through the correct learnship workflow. **Do not make code changes, fix bugs, or implement anything in direct response to a user message.** Every task goes through a workflow.
@@ -200,6 +243,43 @@ agenticflow-ai-skills/
 
 ---
 
+## Code intelligence (CodeGraph)
+
+CodeGraph (`codegraph`) provides a local symbol index for this repo. Project-local MCP configs are
+committed for the Claude-compatible [`.mcp.json`](.mcp.json), Codex
+[`.codex/config.toml`](.codex/config.toml), OpenCode [`opencode.jsonc`](opencode.jsonc), Cursor
+[`.cursor/mcp.json`](.cursor/mcp.json), and VS Code [`.vscode/mcp.json`](.vscode/mcp.json). Each
+launches `codegraph serve --mcp` with `CODEGRAPH_TELEMETRY=0`; Cursor and VS Code add
+`--path ${workspaceFolder}` because their formats support it. Clients without a workspace placeholder
+(`.mcp.json`, `.codex/config.toml`, `opencode.jsonc`) rely on the MCP client's project root/`rootUri`
+instead, so start those clients from this checkout — a CLI run from a parent directory targets that
+parent.
+
+- **Telemetry is off** via the committed `CODEGRAPH_TELEMETRY=0`. Keep it off.
+- **The index stays untracked.** `.codegraph/` is gitignored and must never be committed. Build it once
+  per checkout, then check it:
+
+  ```bash
+  CODEGRAPH_TELEMETRY=0 codegraph init .
+  CODEGRAPH_TELEMETRY=0 codegraph sync .   # after pulls or merges that add files
+  CODEGRAPH_TELEMETRY=0 codegraph status   # confirm the index is current
+  ```
+
+- **This repo is mostly prose, so expect an honest near-zero index.** `skills.sh` is shell code,
+  but CodeGraph v1.6.0 indexes zero symbols for it here; the GitHub Actions YAML
+  under `.github/workflows/` is indexed but also yields 0 symbols. The skill definitions
+  (`skills/*/SKILL.md`), `README.md`, `INSTALL.md`, `CHANGELOG.md`, and other Markdown are not
+  symbol-indexed. Use ordinary search and read for all of these, including `skills.sh`. Treat
+  CodeGraph as navigation help, not a source of truth; verify any finding against the actual file.
+- **Canonical source:** `https://github.com/colbymchenry/codegraph`. The global `codegraph` binary is a
+  user-managed, pre-existing install (ask-first to add or update); per-repo setup here is only the
+  wiring plus the local index. Confirm `command -v codegraph` and `codegraph version` before relying on
+  the MCP.
+- **Commands:** `codegraph status`, `codegraph query "<symbol>"`, `codegraph node <file-or-symbol>`,
+  `codegraph explore "<area>"`, `codegraph files`.
+
+---
+
 ## Skills — Operational Knowledge
 
 ### Learning Partner — `agentic-learning`
@@ -257,3 +337,20 @@ Context fades fast. If a solution was worth finding, it's worth capturing.
 ## Regressions — What Broke and What We Learned
 
 > No regressions logged yet. When bugs are fixed via `/debug`, lessons are recorded here.
+
+---
+
+## Child DOX Index
+
+This repo is small and single-purpose (five skill folders plus install docs), so the root doc holds
+all rules; no child `AGENTS.md` files exist yet. Add a child `AGENTS.md` when a folder becomes a
+durable boundary with its own purpose, rules, workflow, or quality standards, then index it here.
+
+| Path | Owns |
+|------|------|
+| `skills/*/SKILL.md` | Skill definitions (YAML frontmatter + instructions) for the five AgenticFlow skills |
+| `.github/workflows/` | CI/CD — Robin PR review and the release workflow |
+| `.mcp.json`, `.codex/`, `.cursor/`, `.vscode/`, `opencode.jsonc` | Committed project-local CodeGraph MCP wiring |
+| `README.md`, `INSTALL.md`, `CHANGELOG.md`, `skills.sh` | Human-facing install docs, changelog, and legacy installer |
+
+Root-owned: this contract, DOX guidance, CodeGraph/MCP wiring, and the session Git rules above.

@@ -2,21 +2,29 @@
 .DS_Store
 Thumbs.db
 
-# Editor
-.vscode/
+# Editor (machine-specific, except the committed project-local MCP wiring below)
+.vscode/*
+!.vscode/mcp.json
 .idea/
 *.swp
 *.swo
 
-# AI tool working dirs (these are created by users, not committed)
+# AI tool working dirs (these are created by users, not committed) — except the
+# project-local, secret-free MCP wiring committed below.
 .opencode/
 .claude/
-.cursor/
-.codex/
 .gemini/
+.cursor/*
+!.cursor/mcp.json
+.codex/*
+!.codex/config.toml
 
 # learnship planning (local only, never committed to remote)
 .planning/
+
+# CodeGraph local index and daemon state (machine-local, never committed);
+# the MCP config files above are committed.
+.codegraph/
 
 # Temp / workspace
 *.log
