@@ -284,9 +284,9 @@ parent.
 
 ### Learning Partner — `agentic-learning`
 
-The `agentic-learning` skill is installed at `/Users/antongulin/.config/opencode/learnship/skills/agentic-learning/SKILL.md`. When a workflow checkpoint or the user asks you to use the agentic-learning skill:
+The `agentic-learning` skill is installed at `~/.config/opencode/learnship/skills/agentic-learning/SKILL.md`. When a workflow checkpoint or the user asks you to use the agentic-learning skill:
 
-1. Read `/Users/antongulin/.config/opencode/learnship/skills/agentic-learning/SKILL.md`
+1. Read `~/.config/opencode/learnship/skills/agentic-learning/SKILL.md`
 2. Find the section for the requested action (e.g. `either-or`, `brainstorm`, `reflect`, `quiz`, etc.)
 3. Execute those instructions directly in this conversation
 
@@ -296,9 +296,9 @@ Available actions: `learn`, `quiz`, `reflect`, `space`, `brainstorm`, `explain-f
 
 ### Design System — `impeccable`
 
-The `impeccable` skill is installed at `/Users/antongulin/.config/opencode/learnship/skills/impeccable/SKILL.md`. When a workflow checkpoint or the user asks you to use the impeccable skill:
+The `impeccable` skill is installed at `~/.config/opencode/learnship/skills/impeccable/SKILL.md`. When a workflow checkpoint or the user asks you to use the impeccable skill:
 
-1. Read `/Users/antongulin/.config/opencode/learnship/skills/impeccable/SKILL.md`
+1. Read `~/.config/opencode/learnship/skills/impeccable/SKILL.md`
 2. Find the section for the requested action (e.g. `audit`, `critique`, `polish`, etc.)
 3. Execute those instructions directly in this conversation
 
